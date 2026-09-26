@@ -41,6 +41,10 @@ export default function EchoGPTPage() {
         typing={typing}
         onSend={sendMessage}
         onOpenSidebar={() => setSidebarOpen(true)}
+        onNewChat={() => {
+          setMessages([]);
+          setTyping(false);
+        }}
       />
     </div>
   );

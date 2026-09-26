@@ -19,20 +19,29 @@ const navigationGroups = [
     ],
   },
   {
+    title: "Engagement",
+    items: [
+      { label: "Tasks", icon: icons.tasks },
+      { label: "Job analysis", icon: icons.job },
+      { label: "SOP Builder", icon: icons.tasks },
+    ],
+  },
+  {
     title: "Workspace",
     items: [
       { label: "Chat", icon: icons.chat },
       { label: "History", icon: icons.history },
-      { label: "Tasks", icon: icons.tasks },
-      { label: "Job analysis", icon: icons.job },
       { label: "Connectors", icon: icons.connectors },
     ],
   },
   {
-    title: "More",
+    title: "Help & Support",
     items: [
-      { label: "Store", icon: icons.store },
-      { label: "Settings", icon: icons.settings },
+      { label: "Support", icon: icons.help },
+      { label: "Newsletter", icon: icons.mail },
+      { label: "Subscriptions", icon: icons.store },
+      { label: "API Platform", icon: icons.connectors },
+      { label: "Discord", icon: icons.discord },
     ],
   },
 ];
@@ -137,6 +146,24 @@ export default function Sidebar({ isOpen, onClose, onNewChat }: SidebarProps) {
         </nav>
 
         <div className="border-t border-[#E4E0F0] dark:border-[#2B2736] pt-2.5 flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setActiveItem("Chat")}
+            aria-label="Home"
+            title="Home"
+            className="w-8.5 h-8.5 rounded-[10px] flex items-center justify-center cursor-pointer text-[#6B6579] dark:text-[#9C96AC] hover:bg-[#F1EEF9] dark:hover:bg-[#1E1B29]"
+          >
+            {icons.home}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveItem("Connectors")}
+            aria-label="Connectors"
+            title="Connectors"
+            className="w-8.5 h-8.5 rounded-[10px] flex items-center justify-center cursor-pointer text-[#6B6579] dark:text-[#9C96AC] hover:bg-[#F1EEF9] dark:hover:bg-[#1E1B29]"
+          >
+            {icons.connectors}
+          </button>
           <button
             type="button"
             onClick={() => setCollapsed(true)}

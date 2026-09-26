@@ -14,6 +14,7 @@ type ChatWorkspaceProps = {
   typing: boolean;
   onSend: (message: string) => void;
   onOpenSidebar: () => void;
+  onNewChat: () => void;
 };
 
 const models = [
@@ -50,11 +51,15 @@ const suggestions = [
   },
 ];
 
-export default function ChatWorkspace({ messages, typing, onSend, onOpenSidebar }: ChatWorkspaceProps) {
+export default function ChatWorkspace({ messages, typing, onSend, onOpenSidebar, onNewChat }: ChatWorkspaceProps) {
   const [selectedModel, setSelectedModel] = useState("echogpt");
   const [input, setInput] = useState("");
+  const [activeMenu, setActiveMenu] = useState<"connectors" | "prompts" | "history" | null>(null);
+  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+  const [attachmentName, setAttachmentName] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const activeModelName = models.find((model) => model.id === selectedModel)?.name ?? "EchoGPT";
 
   useEffect(() => {
@@ -74,6 +79,12 @@ export default function ChatWorkspace({ messages, typing, onSend, onOpenSidebar 
 
     onSend(trimmedMessage);
     setInput("");
+    setAttachmentName("");
+  }
+
+  function selectAttachment(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (file) setAttachmentName(file.name);
   }
 
   return (
@@ -171,7 +182,124 @@ export default function ChatWorkspace({ messages, typing, onSend, onOpenSidebar 
       </div>
 
       <div className="border-t px-4 pt-3 pb-[calc(16px+env(safe-area-inset-bottom))] border-[#E4E0F0] dark:border-[#2B2736]">
-        <div className="max-w-175 mx-auto flex items-end gap-2 rounded-[18px] pl-3.5 pr-2 py-2 transition-colors bg-white border border-[#E4E0F0] focus-within:border-[#6D3CF0] dark:bg-[#17151F] dark:border-[#2B2736] dark:focus-within:border-[#7C5CFF]">
+        <div className="relative max-w-175 mx-auto rounded-[18px] bg-white border border-[#E4E0F0] dark:bg-[#17151F] dark:border-[#2B2736]">
+          <div className="flex items-center gap-1.5 px-2.5 pt-2 pb-1">
+            <div className="flex min-w-0 items-center gap-2 px-1.5 text-[13px] font-medium">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#6D3CF0] text-xs font-bold text-white dark:bg-[#7C5CFF]">E</span>
+              <span>{activeModelName}</span>
+              <span className="text-[#6B6579] dark:text-[#9C96AC]">⌄</span>
+            </div>
+            <span className="h-5 w-px bg-[#E4E0F0] dark:bg-[#2B2736]" />
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="sr-only"
+              onChange={selectAttachment}
+              aria-label="Choose a file to attach"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              aria-label="Attach a file"
+              title="Attach a file"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-[#6B6579] hover:bg-[#F1EEF9] dark:text-[#9C96AC] dark:hover:bg-[#1E1B29]"
+            >
+              {icons.attach}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveMenu(activeMenu === "connectors" ? null : "connectors")}
+              aria-label="Open connectors"
+              aria-expanded={activeMenu === "connectors"}
+              title="Connectors"
+              className={`flex h-8 w-8 items-center justify-center rounded-lg hover:bg-[#F1EEF9] dark:hover:bg-[#1E1B29] ${webSearchEnabled ? "text-[#6D3CF0] dark:text-[#9C82FF]" : "text-[#6B6579] dark:text-[#9C96AC]"}`}
+            >
+              {icons.connectors}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setInput((currentInput) => currentInput || "Help me plan ");
+                setActiveMenu(activeMenu === "prompts" ? null : "prompts");
+                textareaRef.current?.focus();
+              }}
+              aria-label="Open prompt helper"
+              aria-expanded={activeMenu === "prompts"}
+              title="Prompt helper"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-[#6D3CF0] hover:bg-[#F1EEF9] dark:text-[#9C82FF] dark:hover:bg-[#1E1B29]"
+            >
+              {icons.spark}
+            </button>
+            <div className="flex-1" />
+            <button
+              type="button"
+              onClick={onNewChat}
+              aria-label="Start a new chat"
+              title="New chat"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-[#6B6579] hover:bg-[#F1EEF9] dark:text-[#9C96AC] dark:hover:bg-[#1E1B29]"
+            >
+              {icons.plus}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveMenu(activeMenu === "history" ? null : "history")}
+              aria-label="Show recent prompts"
+              aria-expanded={activeMenu === "history"}
+              title="Recent prompts"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-[#6B6579] hover:bg-[#F1EEF9] dark:text-[#9C96AC] dark:hover:bg-[#1E1B29]"
+            >
+              {icons.clock}
+            </button>
+          </div>
+
+          {activeMenu === "connectors" && (
+            <div className="absolute left-12 top-12 z-10 w-56 rounded-lg border border-[#E4E0F0] bg-white p-3 shadow-lg dark:border-[#2B2736] dark:bg-[#17151F]">
+              <p className="mb-2 text-xs font-semibold">Connectors</p>
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-[#6B6579] dark:text-[#C3BDCF]">
+                <input type="checkbox" checked={webSearchEnabled} onChange={(event) => setWebSearchEnabled(event.target.checked)} />
+                Web search
+              </label>
+            </div>
+          )}
+          {activeMenu === "prompts" && (
+            <div className="absolute left-24 top-12 z-10 w-56 rounded-lg border border-[#E4E0F0] bg-white p-3 shadow-lg dark:border-[#2B2736] dark:bg-[#17151F]">
+              <p className="mb-2 text-xs font-semibold">Prompt helper</p>
+              <p className="text-xs leading-relaxed text-[#6B6579] dark:text-[#C3BDCF]">Tell EchoGPT what you want to plan, write, or learn. Add a goal and any important details.</p>
+            </div>
+          )}
+          {activeMenu === "history" && (
+            <div className="absolute right-2 top-12 z-10 w-64 rounded-lg border border-[#E4E0F0] bg-white p-3 shadow-lg dark:border-[#2B2736] dark:bg-[#17151F]">
+              <p className="mb-2 text-xs font-semibold">Recent prompts</p>
+              {messages.filter((message) => message.role === "user").slice(-3).reverse().map((message) => (
+                <button
+                  key={message.id}
+                  type="button"
+                  onClick={() => {
+                    setInput(message.text);
+                    setActiveMenu(null);
+                    textareaRef.current?.focus();
+                  }}
+                  className="block w-full truncate rounded px-2 py-1.5 text-left text-xs text-[#6B6579] hover:bg-[#F1EEF9] dark:text-[#C3BDCF] dark:hover:bg-[#1E1B29]"
+                >
+                  {message.text}
+                </button>
+              ))}
+              {!messages.some((message) => message.role === "user") && (
+                <p className="text-xs text-[#6B6579] dark:text-[#9C96AC]">Your prompts will appear here.</p>
+              )}
+            </div>
+          )}
+
+          {attachmentName && (
+            <div className="mx-3 flex items-center gap-2 border-t border-[#E4E0F0] px-1 py-2 text-xs dark:border-[#2B2736]">
+              <span className="min-w-0 flex-1 truncate">Attached: {attachmentName}</span>
+              <button type="button" aria-label="Remove attachment" onClick={() => setAttachmentName("")} className="rounded p-1 hover:bg-[#F1EEF9] dark:hover:bg-[#1E1B29]">
+                {icons.close}
+              </button>
+            </div>
+          )}
+
+          <div className="mx-2 mb-2 flex items-end gap-2 rounded-[14px] border border-[#E4E0F0] px-3.5 py-2 focus-within:border-[#6D3CF0] dark:border-[#2B2736] dark:focus-within:border-[#7C5CFF]">
           <textarea
             ref={textareaRef}
             rows={1}
@@ -199,6 +327,7 @@ export default function ChatWorkspace({ messages, typing, onSend, onOpenSidebar 
           >
             {icons.send}
           </button>
+          </div>
         </div>
         <p className="max-w-175 mx-auto text-center text-[11.5px] text-[#6B6579] dark:text-[#9C96AC] mt-2">
           EchoGPT can make mistakes. Verify important information.
