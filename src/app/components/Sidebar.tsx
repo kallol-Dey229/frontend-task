@@ -65,7 +65,7 @@ export default function Sidebar({ isOpen, onClose, onNewChat }: SidebarProps) {
     try {
       localStorage.setItem("echogpt-theme", dark ? "dark" : "light");
     } catch {
-      // The theme still works when browser storage is unavailable.
+      
     }
   }, [dark]);
 
