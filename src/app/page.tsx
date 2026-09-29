@@ -28,7 +28,7 @@ export default function EchoGPTPage() {
       ]);
     }, 900);
   }
-
+//
   return (
     <div className="flex h-dvh overflow-hidden font-sans bg-[#F6F5FB] text-[#1B1726] dark:bg-[#0E0D13] dark:text-[#F1EEF9]">
       <Sidebar
